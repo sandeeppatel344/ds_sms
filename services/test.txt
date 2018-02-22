@@ -1,0 +1,1 @@
+{"username":"sandeep","password":"12345","mobileno":"123456789","user_role":"admin","address":"test","email":"test@test.com"}
