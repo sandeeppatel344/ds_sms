@@ -18,7 +18,7 @@ app.use(bodyParser.urlencoded({ extended: true })); // support encoded bodies
 //app.use(express.static(__dirname+'/../public'));
 app.use((req, res, next)=> {
     console.log(req.originalUrl)
-    if(req.originalUrl != "/user/register" && req.originalUrl != "/login/userlogin" && req.originalUrl != "/login/forgotpassword"){
+    if(req.originalUrl != "/user/register" && req.originalUrl != "/user/login" && req.originalUrl != "/user/forgotpass"){
         console.log(req.originalUrl != "/user/register")
         client.get(req.headers.token,(error,response)=>{
             if(error){
@@ -54,25 +54,42 @@ app.post("/user/login",function(req,res){
     var username = param.username
     var password = param.password
     var queryParams = [username,password]
-    var query = "select * from user_details where username = ? and password = ?"
+    var query = "select * from register_user where student_mobile = ? and password = ?"
     mysqladaptor.executeQueryWithParameters(DBNAME,query,queryParams,function(error,result){
         if(error){
             res.status(500).json({"error":error,"message":"Interval Server Error"})
             return
         }
-        if(result){
-                var token1 = guid.uuidv4();
-                client.set(token1,JSON.stringify(result))
+        if(result){              
               
                 if(result.data.length == 0){
-                    res.staus(403).json({message:"Invalid username and password",error:true})
+                    res.status(403).json({message:"Invalid username and password",error:true})
                 }else{
+                    var token1 = guid.uuidv4();
+                    client.set(token1,JSON.stringify(result))
                     res.json({"token":token1,result})
                 }
             }
     })
 })
 
+
+app.post("/user/forgotpass",function(req,res){
+    var param = req.body
+    var resetP = {};
+    //resetP.student_mobile = param.student_mobile;
+    resetP.password = param.password;
+    var where = {"student_mobile":param.student_mobile}
+    mysqladaptor.update(DBNAME,where,resetP,"register_user",function(error,result){
+        if(error){
+            res.status(500).json({"error":param,"message":"Interval Server Error"})
+            return
+        }
+        if(result){
+               res.json({"message":"Registration Successfully"})
+            }
+    })
+})
 
 app.post("/user/register",function(req,res){
     
@@ -95,7 +112,7 @@ app.post("/user/register",function(req,res){
     regData.student_email   = param.student_email;
     regData.parent_email    = param.parent_email;
     regData.dob             = param.dob;
-    regData.password             = param.password;    
+    regData.password        = param.password;    
     mysqladaptor.insert(DBNAME,regData,"register_user",function(error,result){
         if(error){
             res.status(500).json({"error":param,"message":"Interval Server Error"})
@@ -106,6 +123,92 @@ app.post("/user/register",function(req,res){
             }
     })
 })
+
+
+app.post("/save/stream",function(req,res){
+    
+    var param = req.body
+    console.log(param)
+    var streamData = {};
+        streamData.stream_name = param.stream_name
+    mysqladaptor.insert(DBNAME,streamData,"stream",function(error,result){
+        if(error){
+            res.status(500).json({"error":param,"message":"Interval Server Error"})
+            return
+        }
+        if(result){
+               res.json({"message":"Stream Saved Successfully"})
+            }
+    })
+})
+
+app.post("/save/class",function(req,res){
+    
+    var param = req.body
+    console.log(param)
+    var classData = {};
+    classData.class_name = param.class_name
+    mysqladaptor.insert(DBNAME,classData,"class",function(error,result){
+        if(error){
+            res.status(500).json({"error":param,"message":"Interval Server Error"})
+            return
+        }
+        if(result){
+               res.json({"message":"Class Saved Successfully"})
+            }
+    })
+})
+
+app.post("/save/class",function(req,res){
+    
+    var param = req.body
+    console.log(param)
+    var yearData = {};
+    yearData.year_name = param.year_name
+    mysqladaptor.insert(DBNAME,yearData,"year",function(error,result){
+        if(error){
+            res.status(500).json({"error":param,"message":"Interval Server Error"})
+            return
+        }
+        if(result){
+               res.json({"message":"Year Saved Successfully"})
+            }
+    })
+})
+
+app.post("/save/category",function(req,res){
+    
+    var param = req.body
+    console.log(param)
+    var categoryData = {};
+    categoryData.year_name = param.category_name
+    mysqladaptor.insert(DBNAME,categoryData,"category",function(error,result){
+        if(error){
+            res.status(500).json({"error":param,"message":"Interval Server Error"})
+            return
+        }
+        if(result){
+               res.json({"message":"Category Saved Successfully"})
+            }
+    })
+})
+app.post("/save/division",function(req,res){
+    
+    var param = req.body
+    console.log(param)
+    var divisionData = {};
+    divisionData.year_name = param.division_name
+    mysqladaptor.insert(DBNAME,divisionData,"division",function(error,result){
+        if(error){
+            res.status(500).json({"error":param,"message":"Interval Server Error"})
+            return
+        }
+        if(result){
+               res.json({"message":"Category Saved Successfully"})
+            }
+    })
+})
+
 app.listen(9112, function() {
     console.log("Listening on " + "9111");
 });
