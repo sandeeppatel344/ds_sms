@@ -20,7 +20,7 @@ var executeQuery = function(dbName, query,  callback){
             }
             else{
                 var r = {};
-                r.data = result.rows;
+                r.data = result;
                 callback(null, r);
             }
         });
