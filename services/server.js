@@ -104,7 +104,8 @@ app.post("/user/register",function(req,res){
     regData.student_email   = param.student_email;
     regData.parent_email    = param.parent_email;
     regData.dob             = param.dob;
-    regData.password        = param.password;    
+    regData.password        = param.password;
+    regData.fcm             = param.fcm;    
     mysqladaptor.insert(DBNAME,regData,"register_user",function(error,result){
         if(error){
             res.status(500).json({"error":error,"message":"Interval Server Error"})
@@ -117,24 +118,32 @@ app.post("/user/register",function(req,res){
 })
 
 
-/*var FCM = require('fcm-push');
+var FCM = require('fcm-push');
 
-var serverKey = '';
+var serverKey = 'AAAAmYqR-l0:APA91bFNFoTisq3Ba1CoIqnhfWcUzMeP500HBGLoFq0hdckEu7Mwv2JjmGwZ55zT7FM0aeA-HZjL71sEoSqVTyoSnuwzUyaZLI6yLe995gNgvnImTvEL1REnkacjikGUPyCv8eRLJtfF';
 var fcm = new FCM(serverKey);
 
-module.exports.pushNotification = function(data,fcmid,title,body){
-
-    var message = {
-        to: 'registration_token_or_topics', // required fill with device token or topics
-        collapse_key: 'your_collapse_key', 
-        data: {
-            your_custom_data_key: 'your_custom_data_value'
-        },
-        notification: {
-            title: 'Title of your push notification',
-            body: 'Body of your push notification'
-        }
-    };
+var pushNotification = function(data,fcmarra,title,body){
+    //var message = [];
+    //_.each(fcmarra,(fcmid)=>{
+        //'evcfOUvAgTA:APA91bFH1gphJuL0qLRjBHHCe2raTFnVyEz3e6rogi6yrYQNXPsoTM3dnEkN3ACvRX5u-L3If0dhIFJ8QJT5XQUHunSiWEpRqJlv-pybCocEiRBcvcdSSlP6OFOl2_G0fjavN8nsQXfv', // required fill with device token or topics
+        var message = {
+            to: fcmarra,
+            collapse_key: 'your_collapse_key', 
+            data: {
+                your_custom_data_key: data
+            },
+            notification: {
+                title: title,
+                body: body,
+                icon : 'icon_notification',
+                color : '#059A79',
+                sound : 'notification'
+            }
+        };
+      //  message.push(message1)
+        
+    //})
     
     //callback style
     fcm.send(message, function(err, response){
@@ -155,7 +164,7 @@ module.exports.pushNotification = function(data,fcmid,title,body){
             console.error(err);
         })
     
-}*/
+}
 
 //==============================================================================
 app.post("/save/stream",function(req,res){
@@ -492,7 +501,7 @@ app.post("/save/division",function(req,res){
     var param = req.body
     console.log(param)
     var divisionData = {};
-    divisionData.year_name = param.division_name
+    divisionData.division_name = param.division_name
     mysqladaptor.insert(DBNAME,divisionData,"division",function(error,result){
         if(error){
             res.status(500).json({"error":error,"message":"Interval Server Error"})
@@ -584,6 +593,14 @@ app.post("/save/notice",function(req,res){
             return
         }
         if(result){
+            var user_query="select fcm from register_user where class_id = ?";
+            mysqladaptor.executeQueryWithParameters(DBNAME,user_query,[noticeData.class_id],function(erro,result){
+                if(result&&noticeData.description&&noticeData.title){
+                    var FCM_IDD = "d_9HvmEjTZE:APA91bFqXhrz1WlfqqrD-b1357QOjVcsf4tN7iC-tOjNbY559qA39WtzFuz1sNu8M8DJoJ3z2sKOsFq7j8QYz0mkgR8OJcKlEHl6sgFurJQJuDP8aDtykAEXWSVKzw_JeYil7sLj5boY"
+                pushNotification(noticeData.title,FCM_IDD,noticeData.title,noticeData.description)
+            }
+            })
+            
                res.json({"message":"Notice Saved Successfully"})
             }
     })
