@@ -688,6 +688,13 @@ app.post("/save/ecxercise",function(req,res){
             return
         }
         if(result){
+            var user_query="select fcm from register_user where class_id = ?";
+            mysqladaptor.executeQueryWithParameters(DBNAME,user_query,[exerciseData.class_id],function(erro,result){
+                if(result&&exerciseData.description&&exerciseData.title){
+                    var FCM_IDD = "d_9HvmEjTZE:APA91bFqXhrz1WlfqqrD-b1357QOjVcsf4tN7iC-tOjNbY559qA39WtzFuz1sNu8M8DJoJ3z2sKOsFq7j8QYz0mkgR8OJcKlEHl6sgFurJQJuDP8aDtykAEXWSVKzw_JeYil7sLj5boY"
+                pushNotification(exerciseData.title,FCM_IDD,exerciseData.title,exerciseData.description)
+            }
+            })
                res.json({"message":"Exercise Saved Successfully"})
             }
     })
