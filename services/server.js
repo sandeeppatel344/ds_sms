@@ -679,7 +679,7 @@ app.post("/save/ecxercise",function(req,res){
     exerciseData.class_id = param.class_id;
     exerciseData.title = param.title;
     exerciseData.description = param.description;
-    exerciseData.notice_date = param.notice_date;
+    
     exerciseData.year_id = param.year_id;
     exerciseData.division_id = param.division_id;
     mysqladaptor.insert(DBNAME,exerciseData,"exercise",function(error,result){
@@ -763,6 +763,67 @@ app.post("/get/noticebyid",function(req,res){
     })
 })
 
+
+app.post("/save/timetable",function(req,res){
+    
+    var param = req.body
+    console.log(param)
+    var timetableData = {};
+    timetableData.class_id = param.class_id;
+    timetableData.teacher_name = param.teacher_name;
+    timetableData.subject_name = param.subject_name;
+    
+    timetableData.start_time = param.start_time;
+    timetableData.end_time = param.end_time;
+    timetableData.date = param.date;
+    mysqladaptor.insert(DBNAME,timetableData,"timetable",function(error,result){
+        if(error){
+            res.status(500).json({"error":error,"message":"Interval Server Error"})
+            return
+        }
+        if(result){
+          //  var user_query="select fcm from register_user where class_id = ?";
+            //mysqladaptor.executeQueryWithParameters(DBNAME,user_query,[exerciseData.class_id],function(erro,result){
+              //  if(result&&exerciseData.description&&exerciseData.title){
+                //    var FCM_IDD = "d_9HvmEjTZE:APA91bFqXhrz1WlfqqrD-b1357QOjVcsf4tN7iC-tOjNbY559qA39WtzFuz1sNu8M8DJoJ3z2sKOsFq7j8QYz0mkgR8OJcKlEHl6sgFurJQJuDP8aDtykAEXWSVKzw_JeYil7sLj5boY"
+                //pushNotification(exerciseData.title,FCM_IDD,exerciseData.title,exerciseData.description)
+           // }
+           // })
+               res.json({"message":"Latuare Saved Successfully"})
+            }
+    })
+})
+
+//======================================================start cornJOB===============================
+
+var cron = require('node-cron');
+
+cron.schedule('* * * * *', function(){
+    console.log('running a task every minute');
+    var currentDate = new Date()
+    var currentHourd = currentDate.getHours()
+    var currentMin = currentDate.getMinutes()
+    var currentSec = currentDate.getSeconds()
+    var time = currentHourd+":"+currentMin+":00"
+    var day = currentDate.getDate()
+    var month = currentDate.getMonth()
+    var year = currentDate.getFullYear()
+    var cDate = day+"/"+month+1+"/"+year 
+    var TimeTableQuery = "select * from timetable where date = ? and start_time= ?"
+    mysqladaptor.executeQueryWithParameters(DBNAME,TimeTableQuery,[cDate,time],function(callback,result){
+            console.log(JSON.stringify(result))
+            result = JSON.stringify(result);
+            result = JSON.parse(result)
+            if(result.data.length>0){
+                var data = result.data[0]
+                var FCM_IDD = "d_9HvmEjTZE:APA91bFqXhrz1WlfqqrD-b1357QOjVcsf4tN7iC-tOjNbY559qA39WtzFuz1sNu8M8DJoJ3z2sKOsFq7j8QYz0mkgR8OJcKlEHl6sgFurJQJuDP8aDtykAEXWSVKzw_JeYil7sLj5boY"
+                pushNotification("TimeTable",FCM_IDD,data.subject_name,data.teacher_name+ " "+data.start_time)
+            }
+           
+    })
+  });
+
+//=======================================================End =====================================
 
 app.listen(9112,"192.168.0.101", function() {
     console.log("Listening on " + "9111");
