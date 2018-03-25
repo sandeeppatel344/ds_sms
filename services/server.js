@@ -596,8 +596,13 @@ app.post("/save/notice",function(req,res){
             var user_query="select fcm from register_user where class_id = ?";
             mysqladaptor.executeQueryWithParameters(DBNAME,user_query,[noticeData.class_id],function(erro,result){
                 if(result&&noticeData.description&&noticeData.title){
+                    var resutl1 = JSON.stringify(result)
+                     resutl1 = JSON.stringify(resutl1)
                     var FCM_IDD = "d_9HvmEjTZE:APA91bFqXhrz1WlfqqrD-b1357QOjVcsf4tN7iC-tOjNbY559qA39WtzFuz1sNu8M8DJoJ3z2sKOsFq7j8QYz0mkgR8OJcKlEHl6sgFurJQJuDP8aDtykAEXWSVKzw_JeYil7sLj5boY"
-                pushNotification(noticeData.title,FCM_IDD,noticeData.title,noticeData.description)
+                    _.each(resutl1.data,(data)=>{
+                        pushNotification(noticeData.title,data.fcm,noticeData.title,noticeData.description)
+                    })
+                
             }
             })
             
@@ -691,8 +696,14 @@ app.post("/save/ecxercise",function(req,res){
             var user_query="select fcm from register_user where class_id = ?";
             mysqladaptor.executeQueryWithParameters(DBNAME,user_query,[exerciseData.class_id],function(erro,result){
                 if(result&&exerciseData.description&&exerciseData.title){
-                    var FCM_IDD = "d_9HvmEjTZE:APA91bFqXhrz1WlfqqrD-b1357QOjVcsf4tN7iC-tOjNbY559qA39WtzFuz1sNu8M8DJoJ3z2sKOsFq7j8QYz0mkgR8OJcKlEHl6sgFurJQJuDP8aDtykAEXWSVKzw_JeYil7sLj5boY"
-                pushNotification(exerciseData.title,FCM_IDD,exerciseData.title,exerciseData.description)
+                 // var FCM_IDD = "d_9HvmEjTZE:APA91bFqXhrz1WlfqqrD-b1357QOjVcsf4tN7iC-tOjNbY559qA39WtzFuz1sNu8M8DJoJ3z2sKOsFq7j8QYz0mkgR8OJcKlEHl6sgFurJQJuDP8aDtykAEXWSVKzw_JeYil7sLj5boY"
+                    var resutl1 = JSON.stringify(result)
+                    resutl1 = JSON.stringify(resutl1)
+                   var FCM_IDD = "d_9HvmEjTZE:APA91bFqXhrz1WlfqqrD-b1357QOjVcsf4tN7iC-tOjNbY559qA39WtzFuz1sNu8M8DJoJ3z2sKOsFq7j8QYz0mkgR8OJcKlEHl6sgFurJQJuDP8aDtykAEXWSVKzw_JeYil7sLj5boY"
+                   _.each(resutl1.data,(data)=>{
+                    pushNotification(exerciseData.title,data.fcm,exerciseData.title,exerciseData.description)
+                   })
+                
             }
             })
                res.json({"message":"Exercise Saved Successfully"})
@@ -806,18 +817,25 @@ cron.schedule('* * * * *', function(){
     var currentSec = currentDate.getSeconds()
     var time = currentHourd+":"+currentMin+":00"
     var day = currentDate.getDate()
-    var month = currentDate.getMonth()
+    var month = currentDate.getMonth() + 1
     var year = currentDate.getFullYear()
-    var cDate = day+"/"+month+1+"/"+year 
-    var TimeTableQuery = "select * from timetable where date = ? and start_time= ?"
+    var cDate = day+"/"+0+parseInt(month)+"/"+year 
+    var TimeTableQuery = `SELECT *
+    FROM register_user
+    INNER JOIN timetable ON register_user.class_id = timetable.class_id where   timetable.date = ? and timetable.start_time = ?`
+   // var TimeTableQuery = "select * from timetable where date = ? and start_time= ?"
     mysqladaptor.executeQueryWithParameters(DBNAME,TimeTableQuery,[cDate,time],function(callback,result){
             console.log(JSON.stringify(result))
             result = JSON.stringify(result);
             result = JSON.parse(result)
             if(result.data.length>0){
                 var data = result.data[0]
+
                 var FCM_IDD = "d_9HvmEjTZE:APA91bFqXhrz1WlfqqrD-b1357QOjVcsf4tN7iC-tOjNbY559qA39WtzFuz1sNu8M8DJoJ3z2sKOsFq7j8QYz0mkgR8OJcKlEHl6sgFurJQJuDP8aDtykAEXWSVKzw_JeYil7sLj5boY"
-                pushNotification("TimeTable",FCM_IDD,data.subject_name,data.teacher_name+ " "+data.start_time)
+                _.each(result.data,(data)=>{
+                    pushNotification("TimeTable",data.fcm,data.subject_name,data.teacher_name+ " "+data.start_time)
+                })
+                
             }
            
     })
@@ -825,7 +843,7 @@ cron.schedule('* * * * *', function(){
 
 //=======================================================End =====================================
 
-app.listen(9112,"192.168.0.101", function() {
+app.listen(9112,"192.168.0.102", function() {
     console.log("Listening on " + "9111");
 });
 process.on('uncaughtException', function (err) {
